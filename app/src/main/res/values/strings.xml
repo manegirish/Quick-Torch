@@ -3,5 +3,11 @@
 
     <string name="screen">Screen</string>
     <string name="led">Led</string>
+    <string name="sos">SOS</string>
+
+    <string name="permission_camera_rationale">Camera permission is needed to show the camera preview.</string>
+
+    <string name="button_allow">Allow</string>
+    <string name="button_deny">Deny</string>
 
 </resources>

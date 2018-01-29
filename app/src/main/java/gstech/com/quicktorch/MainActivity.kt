@@ -1,17 +1,24 @@
 package gstech.com.quicktorch
 
+import android.annotation.TargetApi
 import android.content.pm.PackageManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.support.v7.app.AlertDialog
 import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
+import android.provider.Settings
+import android.content.Intent
+import android.graphics.Color
+import android.net.Uri
+import android.os.Build
+
 
 class MainActivity : AppCompatActivity(),View.OnClickListener {
 
-    var flashOn : Boolean = false
-    var hasFlash : Boolean = false
+    private val TAG : String = "MainActivity"
+    private var flashOn : Boolean = false
+    private var hasFlash : Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,33 +33,51 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
         main_activity_bulb_icon.setOnClickListener(this)
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
     override fun onClick(p0: View?) {
-        if (p0!!.id==main_activity_bulb_icon.id) {
-            toggleLight()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Settings.System.canWrite(applicationContext)) {
+               toggleLight()
+            } else {
+                val intent = Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS)
+                intent.data = Uri.parse("package:" + applicationContext.packageName)
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+            }
         }
     }
 
     private fun toggleLight(){
         if (flashOn) {
             flashOn = false
-            main_activity_bulb_icon.setImageResource(R.drawable.ic_bulb_off)
-            Toast.makeText(applicationContext, "You clicked Off", Toast.LENGTH_SHORT).show()
+            setBrightness(100)
+            main_activity_bulb_icon.setImageResource(R.drawable.vi_bulb_off)
+            activity_main_layout.setBackgroundColor(applicationContext.resources.getColor(R.color.colorAccent))
+            Toast.makeText(applicationContext, "You clicked Off "+getBrightness(), Toast.LENGTH_SHORT).show()
         }else{
             flashOn = true
-            main_activity_bulb_icon.setImageResource(R.drawable.ic_light_bulb_on)
-            Toast.makeText(applicationContext, "You clicked On", Toast.LENGTH_SHORT).show()
+            setBrightness(255)
+            main_activity_bulb_icon.setImageResource(R.drawable.vi_bulb_on)
+            activity_main_layout.setBackgroundColor(applicationContext.resources.getColor(R.color.white))
+            Toast.makeText(applicationContext, "You clicked On : "+getBrightness(), Toast.LENGTH_SHORT).show()
         }
     }
-    private fun showAlert(title : String, description : String){
-        val alertDialog = AlertDialog.Builder(this).create()
-        alertDialog.setTitle(title)
-        alertDialog.setMessage(description)
 
-        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", {
-            dialogInterface, i ->
-
-        })
-
-        alertDialog.show()
+    private fun getBrightness():Int{
+        return Settings.System.getInt(
+                this.contentResolver,
+                Settings.System.SCREEN_BRIGHTNESS,
+                0)
     }
+
+    private fun setBrightness(level : Int){
+        if(level in 0..255){
+                Settings.System.putInt(
+                        this.contentResolver,
+                        Settings.System.SCREEN_BRIGHTNESS,
+                        level
+            )
+        }
+    }
+
 }

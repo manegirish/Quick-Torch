@@ -5,7 +5,7 @@
     android:id="@+id/activity_main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/grey_d6"
+    android:background="@color/colorPrimary"
     android:padding="@dimen/activity_horizontal_margin"
     tools:context="gstech.com.quicktorch.MainActivity">
 
@@ -16,7 +16,7 @@
         android:layout_centerInParent="true"
         android:layout_gravity="center"
         android:onClick="onClick"
-        app:srcCompat="@drawable/ic_bulb_off" />
+        app:srcCompat="@drawable/vi_bulb_off" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -26,30 +26,35 @@
         android:gravity="center"
         android:orientation="horizontal">
 
-        <Button
-            android:layout_width="150dp"
-            android:layout_height="30dp"
-            android:background="@drawable/rounded_rectangle"
-            android:gravity="center"
-            android:maxWidth="120dp"
-            android:textAllCaps="true"
-            android:textStyle="bold"
-            android:text="@string/led"
-            android:textColor="@android:color/white"
-            android:textSize="14sp" />
+        <android.support.v7.widget.AppCompatImageButton
+            android:layout_width="0dp"
+            android:layout_height="35dp"
+            android:background="@drawable/hollow_rounded_rectangle"
+            android:layout_weight="0.45"
+            app:srcCompat="@drawable/ic_flash" />
 
         <Button
-            android:layout_width="150dp"
-            android:layout_height="30dp"
+            android:id="@+id/main_activity_sos_button"
+            android:layout_width="0dp"
+            android:layout_height="35dp"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
             android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:layout_marginRight="@dimen/activity_horizontal_margin"
             android:layout_marginStart="@dimen/activity_horizontal_margin"
-            android:background="@drawable/rounded_rectangle"
+            android:background="@drawable/hollow_rounded_rectangle"
             android:gravity="center"
-            android:maxWidth="120dp"
+            android:layout_weight="0.35"
+            android:text="@string/sos"
             android:textAllCaps="true"
-            android:textStyle="bold"
-            android:textColor="@android:color/white"
-            android:text="@string/screen"
-            android:textSize="14sp" />
+            android:textColor="@color/colorPrimaryDark"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <android.support.v7.widget.AppCompatImageButton
+            android:layout_width="0dp"
+            android:layout_height="35dp"
+            android:layout_weight="0.2"
+            android:background="@drawable/hollow_rounded_rectangle"
+            app:srcCompat="@drawable/ic_menu" />
     </LinearLayout>
 </RelativeLayout>
