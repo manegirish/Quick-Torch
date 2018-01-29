@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/grey_d6"
+    android:padding="@dimen/activity_horizontal_margin"
+    tools:context="gstech.com.quicktorch.MainActivity">
+
+    <android.support.v7.widget.AppCompatImageView
+        android:id="@+id/main_activity_bulb_icon"
+        android:layout_width="@dimen/icon_size"
+        android:layout_height="@dimen/icon_size"
+        android:layout_centerInParent="true"
+        android:layout_gravity="center"
+        android:onClick="onClick"
+        app:srcCompat="@drawable/ic_bulb_off" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@android:color/transparent"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:layout_width="150dp"
+            android:layout_height="30dp"
+            android:background="@drawable/rounded_rectangle"
+            android:gravity="center"
+            android:maxWidth="120dp"
+            android:textAllCaps="true"
+            android:textStyle="bold"
+            android:text="@string/led"
+            android:textColor="@android:color/white"
+            android:textSize="14sp" />
+
+        <Button
+            android:layout_width="150dp"
+            android:layout_height="30dp"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:background="@drawable/rounded_rectangle"
+            android:gravity="center"
+            android:maxWidth="120dp"
+            android:textAllCaps="true"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:text="@string/screen"
+            android:textSize="14sp" />
+    </LinearLayout>
+</RelativeLayout>

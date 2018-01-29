@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Quick Torch</string>
+
+    <string name="screen">Screen</string>
+    <string name="led">Led</string>
+
+</resources>
