@@ -10,4 +10,7 @@
     <string name="button_allow">Allow</string>
     <string name="button_deny">Deny</string>
 
+    <string name="share">Share</string>
+    <string name="rate_us">Rate Us</string>
+
 </resources>

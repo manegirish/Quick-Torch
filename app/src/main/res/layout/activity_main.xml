@@ -15,7 +15,6 @@
         android:layout_height="@dimen/icon_size"
         android:layout_centerInParent="true"
         android:layout_gravity="center"
-        android:onClick="onClick"
         app:srcCompat="@drawable/vi_bulb_off" />
 
     <LinearLayout
@@ -27,10 +26,11 @@
         android:orientation="horizontal">
 
         <android.support.v7.widget.AppCompatImageButton
+            android:id="@+id/main_activity_flash_button"
             android:layout_width="0dp"
             android:layout_height="35dp"
-            android:background="@drawable/hollow_rounded_rectangle"
             android:layout_weight="0.45"
+            android:background="@drawable/hollow_rounded_rectangle"
             app:srcCompat="@drawable/ic_flash" />
 
         <Button
@@ -41,9 +41,9 @@
             android:layout_marginLeft="@dimen/activity_horizontal_margin"
             android:layout_marginRight="@dimen/activity_horizontal_margin"
             android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_weight="0.35"
             android:background="@drawable/hollow_rounded_rectangle"
             android:gravity="center"
-            android:layout_weight="0.35"
             android:text="@string/sos"
             android:textAllCaps="true"
             android:textColor="@color/colorPrimaryDark"
@@ -51,6 +51,7 @@
             android:textStyle="bold" />
 
         <android.support.v7.widget.AppCompatImageButton
+            android:id="@+id/main_activity_menu_button"
             android:layout_width="0dp"
             android:layout_height="35dp"
             android:layout_weight="0.2"

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_share"
+        android:title="@string/share"
+        app:showAsAction="ifRoom|withText" />
+    <item
+        android:id="@+id/menu_rate"
+        android:title="@string/rate_us"
+        app:showAsAction="ifRoom|withText" />
+</menu>
