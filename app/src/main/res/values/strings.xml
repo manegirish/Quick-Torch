@@ -13,4 +13,5 @@
     <string name="share">Share</string>
     <string name="rate_us">Rate Us</string>
 
+    <string name="runtime_permissions_txt">Please enable ALL permissions from app settings.</string>
 </resources>

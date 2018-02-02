@@ -1,8 +1,13 @@
+/**
+ * @author Girish Mane(girishmane8692@gmail.com)
+ *         Created on 27-01-2018
+ *         Last Modified on 01-02-2018
+ */
+
 package gstech.com.quicktorch
 
 import android.annotation.TargetApi
 import android.content.pm.PackageManager
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -12,38 +17,30 @@ import android.content.Intent
 import android.hardware.Camera
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import java.util.*
-import android.R.id.button1
 import android.annotation.SuppressLint
 import android.support.v7.view.menu.MenuBuilder
 import android.support.v7.view.menu.MenuPopupHelper
-import android.support.v7.widget.MenuPopupWindow
-import android.support.v7.widget.PopupMenu
-import android.view.Menu
-import android.view.MenuItem
-import android.widget.PopupWindow
 
+class MainActivity : RuntimePermissionActivity(), View.OnClickListener {
 
-class MainActivity : AppCompatActivity(), View.OnClickListener {
-
-    private val TAG: String = "MainActivity"
+    //private val TAG: String = "MainActivity"
     private var flashOn: Boolean = false
     private var hasFlash: Boolean = false
 
     private var running = false
 
     private var userBrightness: Int = 100
-    private var camera: Camera? = null
-    var params: Camera.Parameters? = null
-    lateinit var timer: TimerTask
-    lateinit var time: Timer
-    //lateinit var thread: Thread
-    val sosString: String = "0010100101"
-    val flashString: String = "10101010"
+    private lateinit var camera: Camera
 
-    val sosBlinkDelay: Long = 1700
-    val flashBlinkDelay: Long = 500
+    private lateinit var timer: TimerTask
+    lateinit var time: Timer
+
+    private val sosString: String = "0010100101"
+    private val flashString: String = "010101010"
+
+    private val sosBlinkDelay: Long = 1700
+    private val flashBlinkDelay: Long = 500
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,16 +59,33 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         if (!hasFlash) {
             userBrightness = getBrightness()
         } else {
-            getCamera()
-            turnOnFlash()
+            super@MainActivity.requestAppPermissions(arrayOf(android.Manifest.permission.CAMERA),
+                    R.string.runtime_permissions_txt, 1)
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
+    override fun onPause() {
+        super.onPause()
+        resetFlash()
+    }
+
+    override fun onPermissionsGranted(requestCode: Int) {
+    }
+
     override fun onClick(p0: View?) {
         when (p0) {
-            main_activity_bulb_icon -> torchOperation()
-            main_activity_menu_button -> {showPopMenu(main_activity_menu_button)}
+            main_activity_bulb_icon -> {
+                if (running) {
+                    time.cancel()
+                    timer.cancel()
+                    running = false
+                    resetFlash()
+                }
+                torchOperation()
+            }
+
+            main_activity_menu_button -> showPopMenu(main_activity_menu_button)
+
             main_activity_flash_button -> {
                 if (running) {
                     time.cancel()
@@ -79,10 +93,12 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                     running = false
                     resetFlash()
                 } else {
+                    resetFlash()
                     time = object : Timer(true) {}
                     showSosTorch(flashString, flashBlinkDelay)
                 }
             }
+
             main_activity_sos_button -> {
                 if (running) {
                     time.cancel()
@@ -90,6 +106,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                     running = false
                     resetFlash()
                 } else {
+                    resetFlash()
                     time = object : Timer(true) {}
                     showSosTorch(sosString, sosBlinkDelay)
                 }
@@ -97,27 +114,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         }
     }
 
-    // Get the camera
-    private fun getCamera() {
-        if (camera == null) {
-            try {
-                camera = Camera.open()
-                params = camera?.parameters
-            } catch (e: RuntimeException) {
-                Toast.makeText(applicationContext, "Camera Error. Failed to Open. Error: " + e.message, Toast.LENGTH_SHORT).show()
-                Log.e(TAG, "Camera Error. Failed to Open. Error: " + e.message)
-            }
-        }
-    }
-
     private fun resetFlash() {
         if (flashOn) {
-            if (hasFlash) {
-                releaseCameraAndPreview()
-            } else {
-                turnOffFlash()
-            }
-            flashOn = false
+            turnOffFlash()
         }
     }
 
@@ -131,19 +130,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                             if (running) {
                                 if (number == '0') {
                                     runOnUiThread {
-                                        if (hasFlash) {
-                                            params?.flashMode = Camera.Parameters.FLASH_MODE_ON
-                                        } else {
-                                            turnOnFlash()
-                                        }
+                                        turnOnFlash()
                                     }
                                 } else {
                                     runOnUiThread {
-                                        if (hasFlash) {
-                                            params?.flashMode = Camera.Parameters.FLASH_MODE_OFF
-                                        } else {
-                                            turnOffFlash()
-                                        }
+                                        turnOffFlash()
                                     }
                                 }
                                 Thread.sleep(blinkDelay)
@@ -162,21 +153,17 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     private fun showPopMenu(view: View) {
         val menuBuilder = MenuBuilder(this)
         menuBuilder.add(applicationContext.getString(R.string.share)).setOnMenuItemClickListener {
+            resetFlash()
             Toast.makeText(applicationContext, "Application shared!", Toast.LENGTH_SHORT).show()
             true
         }
         menuBuilder.add(applicationContext.getString(R.string.rate_us)).setOnMenuItemClickListener {
+            resetFlash()
             Toast.makeText(applicationContext, "Thank you for rating us!", Toast.LENGTH_SHORT).show()
             true
         }
         val mPopup = MenuPopupHelper(this, menuBuilder, view)
         mPopup.show()
-    }
-
-    private fun releaseCameraAndPreview() {
-        if (camera != null) {
-            camera?.release()
-        }
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -201,22 +188,19 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun turnOnFlash() {
         if (hasFlash) {
-            releaseCameraAndPreview()
-            if (camera == null) {
-                try {
-                    camera = Camera.open()
-                    params?.flashMode = Camera.Parameters.FLASH_MODE_ON
-                    camera?.parameters = params
-                    camera?.startPreview()
-                } catch (e: RuntimeException) {
-                    Log.e(TAG, "Camera Error. Failed to Open. Error: " + e.message)
-                    return
-                }
+            try {
+                camera = Camera.open()
+                val parameters = camera.parameters
+                parameters.flashMode = Camera.Parameters.FLASH_MODE_TORCH
+                camera.parameters = parameters
+                camera.startPreview()
+            } catch (e: RuntimeException) {
+                Toast.makeText(applicationContext, "Error Accessing Flash Check Permissions", Toast.LENGTH_SHORT).show()
+                return
             }
         } else {
             setBrightness(255)
             activity_main_layout.setBackgroundColor(applicationContext.resources.getColor(R.color.white))
-            /*Toast.makeText(applicationContext, "You clicked On : " + getBrightness(), Toast.LENGTH_SHORT).show()*/
         }
         main_activity_bulb_icon.setImageResource(R.drawable.vi_bulb_on)
         flashOn = true
@@ -224,17 +208,14 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun turnOffFlash() {
         if (hasFlash) {
-            if (camera == null) {
-                try {
-                    camera = Camera.open()
-                    params?.flashMode = Camera.Parameters.FLASH_MODE_OFF
-                    camera?.parameters = params
-                    camera?.stopPreview()
-                    camera?.release()
-                } catch (e: RuntimeException) {
-                    Log.e(TAG, "Camera Error. Failed to Open. Error: " + e.message)
-                    return
-                }
+            try {
+                val parameters = camera.parameters
+                parameters.flashMode = Camera.Parameters.FLASH_MODE_OFF
+                camera.stopPreview()
+                camera.release()
+            } catch (e: RuntimeException) {
+                Toast.makeText(applicationContext, "Error Accessing Flash Check Permissions", Toast.LENGTH_SHORT).show()
+                return
             }
         } else {
             setBrightness(userBrightness)
@@ -252,21 +233,45 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
     private fun getBrightness(): Int {
-        return Settings.System.getInt(
-                this.contentResolver,
-                Settings.System.SCREEN_BRIGHTNESS,
-                0)
-    }
-
-    private fun setBrightness(level: Int) {
-        if (level in 0..255) {
-            Settings.System.putInt(
+        var systemStatus = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            systemStatus = Settings.System.canWrite(applicationContext)
+        }
+        if (!systemStatus) {
+            val intent = Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS)
+            intent.data = Uri.parse("package:" + applicationContext.packageName)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(intent)
+        } else {
+            return Settings.System.getInt(
                     this.contentResolver,
                     Settings.System.SCREEN_BRIGHTNESS,
-                    level
-            )
+                    0)
         }
+        return 0
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
+    private fun setBrightness(level: Int) {
+        var systemStatus = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            systemStatus = Settings.System.canWrite(applicationContext)
+        }
+        if (!systemStatus) {
+            val intent = Intent(android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS)
+            intent.data = Uri.parse("package:" + applicationContext.packageName)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(intent)
+        } else {
+            if (level in 0..255) {
+                Settings.System.putInt(
+                        this.contentResolver,
+                        Settings.System.SCREEN_BRIGHTNESS,
+                        level
+                )
+            }
+        }
+    }
 }
