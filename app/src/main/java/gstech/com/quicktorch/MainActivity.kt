@@ -19,39 +19,59 @@ import android.net.Uri
 import android.os.Build
 import java.util.*
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.pm.ActivityInfo
+import android.hardware.Sensor
 import android.support.v7.view.menu.MenuBuilder
 import android.support.v7.view.menu.MenuPopupHelper
+import android.hardware.SensorManager
+import gstech.com.quicktorch.ShakeDetector.OnShakeListener
 
 class MainActivity : RuntimePermissionActivity(), View.OnClickListener {
 
     //private val TAG: String = "MainActivity"
     private var flashOn: Boolean = false
     private var hasFlash: Boolean = false
-
-    private var running = false
-
-    private var userBrightness: Int = 100
-    private lateinit var camera: Camera
-
-    private lateinit var timer: TimerTask
-    lateinit var time: Timer
-
     private val sosString: String = "0010100101"
     private val flashString: String = "010101010"
-
     private val sosBlinkDelay: Long = 1700
     private val flashBlinkDelay: Long = 500
+    private var running = false
+    private var userBrightness: Int = 100
+
+    private lateinit var camera: Camera
+    private lateinit var timer: TimerTask
+    lateinit var time: Timer
+    // The following are used for the shake detection
+    private var mSensorManager: SensorManager? = null
+    private var mAccelerometer: Sensor? = null
+    private var mShakeDetector: ShakeDetector? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
         hasFlash = this.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)
+
+        // ShakeDetector initialization
+        mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        mAccelerometer = mSensorManager!!
+                .getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        mShakeDetector = ShakeDetector()
+        mShakeDetector!!.setOnShakeListener({ count ->
+            handleShakeEvent(count)
+        })
 
         main_activity_bulb_icon.setOnClickListener(this)
         main_activity_menu_button.setOnClickListener(this)
         main_activity_flash_button.setOnClickListener(this)
         main_activity_sos_button.setOnClickListener(this)
+    }
+
+    private fun handleShakeEvent(count: Int) {
+        Toast.makeText(applicationContext, "Shake detected!!!\n Count:$count", Toast.LENGTH_SHORT).show()
     }
 
     override fun onResume() {
@@ -62,9 +82,14 @@ class MainActivity : RuntimePermissionActivity(), View.OnClickListener {
             super@MainActivity.requestAppPermissions(arrayOf(android.Manifest.permission.CAMERA),
                     R.string.runtime_permissions_txt, 1)
         }
+        // Add the following line to register the Session Manager Listener onResume
+        mSensorManager!!.registerListener(mShakeDetector, mAccelerometer,SensorManager.SENSOR_DELAY_UI)
+
     }
 
     override fun onPause() {
+        // Add the following line to unregister the Sensor Manager onPause
+        mSensorManager!!.unregisterListener(mShakeDetector)
         super.onPause()
         resetFlash()
     }
@@ -88,11 +113,16 @@ class MainActivity : RuntimePermissionActivity(), View.OnClickListener {
 
             main_activity_flash_button -> {
                 if (running) {
+                    main_activity_flash_button.setImageResource(R.drawable.vi_flash_n)
+                    main_activity_flash_button.setBackgroundResource(R.drawable.rounded_rect_n)
+
                     time.cancel()
                     timer.cancel()
                     running = false
                     resetFlash()
                 } else {
+                    main_activity_flash_button.setImageResource(R.drawable.vi_flash_p)
+                    main_activity_flash_button.setBackgroundResource(R.drawable.rounded_rect_p)
                     resetFlash()
                     time = object : Timer(true) {}
                     showSosTorch(flashString, flashBlinkDelay)
@@ -101,11 +131,15 @@ class MainActivity : RuntimePermissionActivity(), View.OnClickListener {
 
             main_activity_sos_button -> {
                 if (running) {
+                    main_activity_sos_button.setBackgroundResource(R.drawable.rounded_rect_n)
+                    main_activity_sos_button.setTextColor(applicationContext.resources.getColor(R.color.icon_normal))
                     time.cancel()
                     timer.cancel()
                     running = false
                     resetFlash()
                 } else {
+                    main_activity_sos_button.setBackgroundResource(R.drawable.rounded_rect_p)
+                    main_activity_sos_button.setTextColor(applicationContext.resources.getColor(R.color.icon_pressed))
                     resetFlash()
                     time = object : Timer(true) {}
                     showSosTorch(sosString, sosBlinkDelay)
@@ -200,9 +234,7 @@ class MainActivity : RuntimePermissionActivity(), View.OnClickListener {
             }
         } else {
             setBrightness(255)
-            activity_main_layout.setBackgroundColor(applicationContext.resources.getColor(R.color.white))
         }
-        main_activity_bulb_icon.setImageResource(R.drawable.vi_bulb_on)
         flashOn = true
     }
 
@@ -219,16 +251,17 @@ class MainActivity : RuntimePermissionActivity(), View.OnClickListener {
             }
         } else {
             setBrightness(userBrightness)
-            activity_main_layout.setBackgroundColor(applicationContext.resources.getColor(R.color.colorAccent))
         }
-        main_activity_bulb_icon.setImageResource(R.drawable.vi_bulb_off)
         flashOn = false
     }
 
+
     private fun toggleLight() {
         if (flashOn) {
+            main_activity_bulb_icon.setImageResource(R.drawable.vi_power_off)
             turnOffFlash()
         } else {
+            main_activity_bulb_icon.setImageResource(R.drawable.vi_power_on)
             turnOnFlash()
         }
     }
